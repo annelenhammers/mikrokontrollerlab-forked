@@ -4,7 +4,14 @@
 #include <sys/types.h> 
 #include "gpio.h"
 
-
+ssize_t _write(int fd, const void *buf, size_t count){
+    char * letter = (char *)(buf);
+    for(int i = 0; i < count; i++){
+        uart_send(*letter);
+        letter++;
+    }
+    return count;
+}
 
 void button_init(){ 
 	GPIO->PIN_CNF[13] = (3 << 2); //0b1100
@@ -14,16 +21,7 @@ void button_init(){
 
 int main(){
 
-    /*ssize_t _write(int fd, const void *buf, size_t count){
-        char * letter = (char *)(buf);
-        for(int i = 0; i < count; i++){
-            uart_send(*letter);
-            letter++;
-        }
-        return count;
-    }
-    iprintf("The average grade in TTK%d was in %d was: %c\n\r",4235,2022,'B'); */
-
+    
 	// Configure LED Matrix
 	for(int i = 17; i <= 20; i++){
 		GPIO->DIRSET = (1 << i);
@@ -33,18 +31,27 @@ int main(){
 	button_init();
     uart_init();
 	// Configure buttons -> see button_init()
+    iprintf("The average grade in TTK%d was in %d was: %c\n\r",4235,2022,'B'); 
 
 	int sleep = 0;
     int leds_on = 0;
+
 	while(1){
 
 		if(!(GPIO->IN & (1 << 13))){
             uart_send('A');
-
+            GPIO -> OUTCLR =(1<<17);
+            GPIO -> OUTCLR =(1<<18);
+            GPIO -> OUTCLR =(1<<19);
+            GPIO -> OUTCLR =(1<<20);
 		}
 
 		if(!(GPIO->IN & (1 << 14))){
             uart_send('B');
+            GPIO -> OUTSET =(1<<17);
+            GPIO -> OUTSET =(1<<18);
+            GPIO -> OUTSET =(1<<19);
+            GPIO -> OUTSET =(1<<20);
 
 		}
         if (uart_read() != '\0') {
@@ -66,7 +73,6 @@ int main(){
             }
         }
         
-
 		sleep = 10000;
 		while(--sleep); // Delay
 	}
